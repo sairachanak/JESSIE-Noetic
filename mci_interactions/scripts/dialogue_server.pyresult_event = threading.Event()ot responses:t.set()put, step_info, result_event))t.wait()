@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
+import json
+import threading
+import Tkinter as tk
+import Queue
+from mci_interactions.srv import DialoguePrompt, DialoguePromptResponse
+from std_msgs.msg import String
+
+dialogue_pub = None
+user_response_pub = None
+tk_queue = Queue.Queue()
+order_received_event = threading.Event()
+session_order = []
+greeting_done = False
+
+def on_session_order(msg):
+    global session_order
+    try:
+        session_order = json.loads(msg.data)
+        rospy.loginfo("[DIALOGUE SERVER] Got order from HTML: %s", session_order)
+        order_received_event.set()
+    except Exception as e:
+        rospy.logwarn("[DIALOGUE SERVER] Bad order: %s", e)
+
+def on_session_reset(msg):
+    global session_order, greeting_done
+    session_order = []
+    greeting_done = False
+    order_received_event.clear()
+    rospy.loginfo("[DIALOGUE SERVER] Reset")
+
+def show_tkinter_main(prompt, is_text_input, step_info):
+    done = threading.Event()
+    root = tk.Tk()
+    root.title("JESSIE")
+    root.geometry("640x460")
+    root.configure(bg="#0d1320")
+    root.attributes("-topmost", True)
+
+    tk.Label(root, text="JESSIE  " + step_info,
+             font=("Arial",11,"bold"), bg="#0d1320", fg="#00e5c0"
+             ).pack(anchor="w", padx=24, pady=(16,4))
+    tk.Frame(root, height=1, bg="#1a2540").pack(fill="x", padx=24, pady=4)
+    tk.Label(root, text=prompt, wraplength=580, font=("Arial",14),
+             justify="left", bg="#0d1320", fg="#dde6f5", pady=8
+             ).pack(padx=24, fill="x")
+
+    if is_text_input:
+        tk.Label(root, text="Type words separated by spaces:",
+                 font=("Arial",11), bg="#0d1320", fg="#3a5070"
+                 ).pack(padx=24, anchor="w", pady=(8,0))
+        entry = tk.Text(root, height=4, font=("Arial",13),
+                        bg="#1a2540", fg="#dde6f5", insertbackground="white",
+                        relief="flat", padx=8, pady=8)
+        entry.pack(padx=24, pady=6, fill="x")
+        def submit():
+            val = entry.get("1.0","end").strip()
+            if val:
+                user_response_pub.publish(String(data=val))
+                rospy.loginfo("[TKINTER] Submitted: %s", val)
+                done.set()
+                root.destroy()
+        tk.Button(root, text="Submit Answer", command=submit,
+                  font=("Arial",13,"bold"), bg="#9b7dff", fg="white",
+                  relief="flat", padx=20, pady=10).pack(pady=12)
+    else:
+        def cont():
+            rospy.loginfo("[TKINTER] Continue clicked — publishing to user_response")
+            user_response_pub.publish(String(data="Continue"))
+            rospy.sleep(0.1)  # make sure it sends
+            done.set()
+            root.destroy()
+        tk.Button(root, text="Continue", command=cont,
+                  font=("Arial",13,"bold"), bg="#00e5c0", fg="#000000",
+                  relief="flat", padx=20, pady=10).pack(pady=12)
+
+    root.mainloop()
+    done.set()
+
+def handle_dialogue(req):
+    global greeting_done
+    try:
+        parsed = json.loads(req.dialogue)
+        prompt = parsed.get("Prompt", req.dialogue)
+        responses = parsed.get("Responses", [])
+        activity = parsed.get("Activity", "")
+    except:
+        prompt = req.dialogue
+        responses = []
+        activity = ""
+
+    rospy.loginfo("=== ROBOT SAYS: %s ===" % prompt)
+
+    if dialogue_pub:
+        dialogue_pub.publish(String(data=req.dialogue))
+
+    is_text_input = "$TEXT_INPUT" in responses
+
+    step_info = ""
+    if session_order and activity in session_order:
+        idx = session_order.index(activity)
+        step_info = "Step %d of %d" % (idx+1, len(session_order))
+
+    result_event = threading.Event()
+    tk_queue.put((prompt, is_text_input, step_info, result_event))
+    result_event.wait()
+
+    if not greeting_done and not order_received_event.is_set():
+        greeting_done = True
+        rospy.loginfo("[DIALOGUE SERVER] Greeting done — returning so greetingComplete can fire")
+        if dialogue_pub:
+            dialogue_pub.publish(String(data=json.dumps({
+                "Prompt": "Waiting for clinician to set session order in HTML...",
+                "Activity": "system"
+            })))
+        def wait_for_order():
+            order_received_event.wait()
+            rospy.loginfo("[DIALOGUE SERVER] HTML order received — session continuing")
+        t = threading.Thread(target=wait_for_order)
+        t.daemon = True
+        t.start()
+        return DialoguePromptResponse(success=True)
+
+    if session_order and activity and activity not in session_order:
+        rospy.loginfo("[DIALOGUE SERVER] Skipping %s — not in HTML order", activity)
+        return DialoguePromptResponse(success=True)
+
+    if not order_received_event.is_set():
+        rospy.loginfo("[DIALOGUE SERVER] Waiting for HTML order...")
+        order_received_event.wait()
+
+    return DialoguePromptResponse(success=True)
+
+if __name__ == '__main__':
+    rospy.init_node('dialogue_server')
+    dialogue_pub = rospy.Publisher('/jessie_dialogue', String, queue_size=10)
+    user_response_pub = rospy.Publisher('/mci_interactions/user_response', String, queue_size=10)
+    rospy.loginfo("Waiting for publishers to register...")
+    rospy.sleep(1.0)  # KEY FIX — wait for publishers to be ready
+    rospy.Service('dialogue/speak_and_display', DialoguePrompt, handle_dialogue)
+    rospy.Subscriber('/jessie_session_order', String, on_session_order)
+    rospy.Subscriber('/jessie_session_reset', String, on_session_reset)
+    rospy.loginfo("Dialogue server ready.")
+    while not rospy.is_shutdown():
+        try:
+            prompt, is_text_input, step_info, result_event = tk_queue.get(timeout=0.1)
+            show_tkinter_main(prompt, is_text_input, step_info)
+            result_event.set()
+        except:
+            pass

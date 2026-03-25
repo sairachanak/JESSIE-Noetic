@@ -1,0 +1,9 @@
+bool arg1
+bool arg2
+bool arg3
+bool arg4
+string dialogue
+int32 arg6
+---
+bool success
+string selected_response
