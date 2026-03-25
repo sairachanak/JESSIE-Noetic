@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="greeting" pkg="controller_executor" type="greeting.py" output="screen" args="greeting /mci_ltl/outputs/greeting" />
+    <node name="greetingComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="greetingComplete /mci_ltl/inputs/greetingComplete --signal_complete_topic /mci_ltl/greetingSignalComplete" />
+    <node name="farewell" pkg="controller_executor" type="farewell.py" output="screen" args="farewell /mci_ltl/outputs/farewell" />
+    <node name="farewellComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="farewellComplete /mci_ltl/inputs/farewellComplete --signal_complete_topic /mci_ltl/farewellSignalComplete" />
+    <node name="numberGame" pkg="controller_executor" type="number_game.py" output="screen" args="numberGame /mci_ltl/outputs/numberGame" />
+    <node name="numberGameComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="numberGameComplete /mci_ltl/inputs/numberGameComplete --signal_complete_topic /mci_ltl/numberGameSignalComplete" />
+    <node name="numberGameInstructions" pkg="controller_executor" type="number_game_instructions.py" output="screen" args="numberGameInstructions /mci_ltl/outputs/numberGameInstructions" />
+    <node name="numberGameInstructionsComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="numberGameInstructionsComplete /mci_ltl/inputs/numberGameInstructionsComplete --signal_complete_topic /mci_ltl/numberGameInstructionsSignalComplete" />
+    <node name="wordGame" pkg="controller_executor" type="word_game.py" output="screen" args="wordGame /mci_ltl/outputs/wordGame" />
+    <node name="wordGameComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="wordGameComplete /mci_ltl/inputs/wordGameComplete --signal_complete_topic /mci_ltl/wordGameSignalComplete" />
+    <node name="wordGameInstructions" pkg="controller_executor" type="word_game_instructions.py" output="screen" args="wordGameInstructions /mci_ltl/outputs/wordGameInstructions" />
+    <node name="wordGameInstructionsComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="wordGameInstructionsComplete /mci_ltl/inputs/wordGameInstructionsComplete --signal_complete_topic /mci_ltl/wordGameInstructionsSignalComplete" />
+    <node name="congratulate" pkg="controller_executor" type="congratulate.py" output="screen" args="congratulate /mci_ltl/outputs/congratulate" />
+    <node name="congratulateComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="congratulateComplete /mci_ltl/inputs/congratulateComplete --signal_complete_topic /mci_ltl/congratulateSignalComplete" />
+    <node name="mindfulnessExercise" pkg="controller_executor" type="mindfulness_exercise.py" output="screen" args="mindfulnessExercise /mci_ltl/outputs/mindfulnessExercise" />
+    <node name="mindfulnessExerciseComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="mindfulnessExerciseComplete /mci_ltl/inputs/mindfulnessExerciseComplete --signal_complete_topic /mci_ltl/mindfulnessExerciseSignalComplete" />
+    <node name="mindfulnessInstructions" pkg="controller_executor" type="mindfulness_instructions.py" output="screen" args="mindfulnessInstructions /mci_ltl/outputs/mindfulnessInstructions" />
+    <node name="mindfulnessInstructionsComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="mindfulnessInstructionsComplete /mci_ltl/inputs/mindfulnessInstructionsComplete --signal_complete_topic /mci_ltl/mindfulnessInstructionsSignalComplete" />
+    <node name="break" pkg="controller_executor" type="break.py" output="screen" args="break /mci_ltl/outputs/break" />
+    <node name="breakComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="breakComplete /mci_ltl/inputs/breakComplete --signal_complete_topic /mci_ltl/breakSignalComplete" />
+    <node name="playMusic" pkg="controller_executor" type="play_music.py" output="screen" args="playMusic /mci_ltl/outputs/playMusic" />
+    <node name="playMusicComplete" pkg="controller_executor" type="event_node_complete.py" output="screen" args="playMusicComplete /mci_ltl/inputs/playMusicComplete --signal_complete_topic /mci_ltl/playMusicSignalComplete" />
+    <node name="scoreHigh" pkg="controller_executor" type="score_high.py" output="screen" args="scoreHigh /mci_ltl/inputs/scoreHigh 0.7" />
+</launch>

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+If you are interested in learning more, or if you use this system in your work, please cite and refer to
+A. Kubota, E. I. C. Peterson, V. Rajendren, H. Kress-Gazit, and L. D. Riek. JESSIE: Synthesizing Social Robot Behaviors for Personalized Neurorehabilitation and Beyond. In Proceedings of the 2020 ACM/IEEE International Conference on Human-Robot Interaction (HRI). IEEE, 2020.
+-->
+<launch>
+    <arg default="true" name="run_executor" />
+    <arg default="true" name="run_monitor" />
+    <arg default="true" name="run_executor_button" />
+    <arg default="mci_ltl" name="example_name" />
+    <arg default="/home/rachana16/catkin_ws/src/LTL_stack/controller_executor/examples/mci_ltl/mci_ltl.yaml" name="yaml_file" />
+    <arg default="/home/rachana16/catkin_ws/src/LTL_stack/controller_executor/examples/mci_ltl/mci_ltl.slugsin" name="slugsin_file" />
+    <include file="/home/rachana16/catkin_ws/src/LTL_stack/controller_executor/examples/mci_ltl/mci_ltl_background.launch" />
+    <include file="/home/rachana16/catkin_ws/src/LTL_stack/controller_executor/examples/mci_ltl/mci_ltl_propositions.launch" />
+    <include file="/home/rachana16/catkin_ws/src/LTL_stack/controller_executor/examples/mci_ltl/mci_ltl_executor.launch" if="$(arg run_executor)">
+      <arg default="$(arg run_executor_button)" name="run_executor_button" />
+      <arg name="run_monitor" value="$(arg run_monitor)" />
+      <arg name="example_name" value="$(arg example_name)" />
+      <arg name="yaml_file" value="$(arg yaml_file)" />
+      <arg name="slugsin_file" value="$(arg slugsin_file)" />
+    </include>
+</launch>
